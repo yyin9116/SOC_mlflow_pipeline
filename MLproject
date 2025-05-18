@@ -1,0 +1,28 @@
+name: SOC_mlflow_pipeline
+
+conda_env: conda_env.yaml
+# python_env: python_env.yaml
+
+
+entry_points:
+  data_prepare:
+    parameters:
+      file_path: {type: str, default: "./data.csv"}
+      crop_type: {type: str, default: "Maize"}
+    command: "python data_prepare.py --file-path {file_path} --crop-type {crop_type}"
+
+  train_model:
+    parameters:
+      preprocessing_run_id: {type: str}
+      crop_type: {type: str, default: "Maize"}
+      hyperopt: {type: bool, default: False}
+    command: "python train_model.py --preprocessing-run-id {preprocessing_run_id} --crop-type {crop_type} --hyperopt {hyperopt}"
+
+  main:
+    parameters:
+      file_path: {type: str, default: "./data.csv"}
+      crop_type: {type: str, default: "Maize"}
+      hyperopt: {type: bool, default: True}
+    command: "python main.py --file-path {file_path} --crop-type {crop_type} --hyperopt {hyperopt}"
+
+
