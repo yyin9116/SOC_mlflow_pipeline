@@ -22,7 +22,7 @@ entry_points:
     parameters:
       file_path: {type: str, default: "./data.csv"}
       crop_type: {type: str, default: "Maize"}
-      hyperopt: {type: bool, default: True}
+      hyperopt: {type: bool, default: False}
     command: "python main.py --file-path {file_path} --crop-type {crop_type} --hyperopt {hyperopt}"
 
 

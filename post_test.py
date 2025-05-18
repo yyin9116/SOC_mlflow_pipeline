@@ -5,11 +5,12 @@ import requests
 import pandas as pd
 
 from train_model import onehot_encoder
-from data_prepare import prepare_data, cut
+from data_prepare import cut
 
 
+# mlflow models serve -m "models:/SOC_rf_model/1" --port 5002
 host = "localhost"
-port = "55755"
+port = "5002"
 
 origin_data = pd.read_csv('data.csv', index_col="Coden")
 
