@@ -141,18 +141,16 @@ def train_model(
     
     # 直接使用本地路径加载
     local_path = mlflow.artifacts.download_artifacts(artifact_uri)
-    df = pd.read_csv(local_path)
+    try:
+        df = pd.read_csv(local_path)
+    except FileNotFoundError:
+        raise ValueError(f"Artifact not found: {artifact_uri}")
+    
     # mlflow自动记录 https://mlflow.org/docs/latest/tracking/autolog
     mlflow.sklearn.autolog()
 
-    # 加载数据
-    #artifact_uri = f"runs:/{preprocessing_run_id}/processed_data/{crop_type.lower()}_data.csv"
-    # try:
-    #     df = pd.read_csv(mlflow.get_artifact_uri(artifact_uri))
-    # except FileNotFoundError:
-    #     raise ValueError(f"Artifact not found: {artifact_uri}")
- 
     label = 'Yield'
+    df = df.set_index('Coden')
     df = onehot_encoder(df)
     train_ds_pd, test_ds_pd = split_dataset(df, random_state=42)
     train_X = train_ds_pd.drop(columns=[label])
