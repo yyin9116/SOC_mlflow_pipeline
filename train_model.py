@@ -51,15 +51,15 @@ def train_model4mlflow_hyperopt(
         rf_model.fit(train_X, train_y)
 
         pred_y = rf_model.predict(test_X)
-        eval_mse = mean_squared_error(test_y, pred_y)
+        eval_rmse = np.sqrt(mean_squared_error(test_y, pred_y))
 
         mlflow.log_params(params)
-        mlflow.log_metric("eval_mse", eval_mse)
+        mlflow.log_metric("eval_rmse", eval_rmse)
     
         # Log model
         mlflow.sklearn.log_model(rf_model, "model", signature=signature)
 
-        return {"loss": eval_mse, "status": STATUS_OK, "model": rf_model}
+        return {"loss": eval_rmse, "status": STATUS_OK, "model": rf_model}
     
 
 
@@ -81,11 +81,11 @@ def train_model4mlflow(
     rf_model.fit(train_X, train_y)
     
     pred_y = rf_model.predict(test_X)
-    eval_mse = mean_squared_error(test_y, pred_y)
+    eval_rmse = np.sqrt(mean_squared_error(test_y, pred_y))
     signature = infer_signature(train_X, rf_model.predict(train_X))
 
     mlflow.log_params(params)
-    mlflow.log_metric("eval_mse", eval_mse)
+    mlflow.log_metric("eval_rmse", eval_rmse)
 
     importance = pd.Series(rf_model.feature_importances_, index=train_X.columns)
     mlflow.log_text(importance.to_csv(), "feature_importance.csv")
@@ -104,11 +104,11 @@ def rf_sklearn_evaulate_model(
     y = test_data[label]
 
     pred_y = model.predict(X)
-    mse_score = mean_squared_error(y, pred_y)
+    rmse_score = np.sqrt(mean_squared_error(y, pred_y))
     # r2 = r2_score(y, pred)
     # oob = model.oob_score_
 
-    return mse_score
+    return rmse_score
 
 @click.command(help="使用预处理后的数据")
 @click.option("--preprocessing-run-id", help="预处理步骤的Run ID", required=True)
@@ -190,18 +190,19 @@ def train_model(
             mlflow.log_params(best)
 
             # Log the mse metric
-            mlflow.log_metric("eval_mse", best_run["loss"])
+            mlflow.log_metric("eval_rmse", best_run["loss"])
 
             mlflow.sklearn.log_model(
                 sk_model=best_run["model"],
                 artifact_path="model",
                 input_example=train_X,
                 signature=signature,
+                registered_model_name=" "
                 # artifact_path=artifact_path
             )  
 
             print(f"Best parameters: {best}")
-            print(f"Best eval mse: {best_run['loss']}")
+            print(f"Best eval rmse: {best_run['loss']}")
     else:
         rf_model, signature = train_model4mlflow(
                 params=params,
