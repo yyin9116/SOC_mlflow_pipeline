@@ -1,3 +1,5 @@
 /mlruns
 /processed_data
 /__pycache__
+
+SOC_mlflow_pipeline.code-workspace
