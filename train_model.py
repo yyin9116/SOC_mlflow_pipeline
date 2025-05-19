@@ -216,7 +216,7 @@ def train_model(
             artifact_path="model",
             signature=signature,
             input_example=train_X,
-            registered_model_name="SOC_rf_model",
+            # registered_model_name="SOC_rf_model",
         )
 
 
