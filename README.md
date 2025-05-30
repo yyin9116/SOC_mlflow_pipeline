@@ -139,7 +139,8 @@ mlflow.sklearn.log_model(
             artifact_path="model",
             signature=signature,
             input_example=train_X,
-            # registered_model_name="SOC_rf_model",  # 取消注释即可将本次训练模型注册
+            # 取消注释即可将本次训练模型注册
+            # registered_model_name="SOC_rf_model",  
         )
 ```
 
