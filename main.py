@@ -12,6 +12,7 @@ def workflow(file_path, crop_type, hyperopt, use_cache):
     mlflow.set_tracking_uri(uri="http://127.0.0.1:5000")
     mlflow.set_experiment("MLflow_SOC_hyperopt")
     with mlflow.start_run(run_name="parent_run") as parent_run:
+        # Step 1: 数据预处理
         data_run = get_or_run(
             entry_point="data_prepare",
             parameters={
