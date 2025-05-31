@@ -4,3 +4,4 @@
 
 SOC_mlflow_pipeline.code-workspace
 /data.csv
+/dvc_rf_model.pkl
