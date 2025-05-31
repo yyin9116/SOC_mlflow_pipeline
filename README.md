@@ -29,9 +29,28 @@
 
   特征变量为各项因素，预测变量为产量。
 
-## DVC 数据集管理
+## DVC 数据版本管理
 
 使用 DVC 进行数据集版本管理以及追踪。
+
+实际上DVC 同样提供了类似 Mlflow 的全流程管理功能，我在尝试之后将类似 MLproject 的文件 dvc.yaml 保留了下来，可执行：
+
+```
+dvc repro
+```
+获得与 MLflow 相似的 pipeline。
+
+向 dvc 添加 stage 命令：
+
+```Python
+dvc stage add -n data_prepare \  
+              -p data_prepare.file_path,data_prepare.crop_type \    
+              -d data_prepare.py -d data/data.csv \
+              -o data/prepared \
+              python data_prepare.py 
+
+```
+详细的 stage 可见 dvc.yaml 文件
 
 ## Mlflow 全流程
 
