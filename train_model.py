@@ -2,16 +2,20 @@ import mlflow
 import click
 import pandas as pd
 import numpy as np
+import json
+import warnings
 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
+import joblib
 # from sklearn.metrics import r2_score, root_mean_squared_error
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 from mlflow.models import infer_signature
 from mlflow import MlflowClient
 from hyperopt import STATUS_OK, Trials, fmin, hp, tpe
 
 
+warnings.filterwarnings("ignore", message="mlflow.utils.autologging_utils")
 
 # sklearn 模型需要One-hot预处理
 def onehot_encoder(crop_type: pd.DataFrame):
@@ -52,12 +56,29 @@ def train_model4mlflow_hyperopt(
 
         pred_y = rf_model.predict(test_X)
         eval_rmse = np.sqrt(mean_squared_error(test_y, pred_y))
+        r2 = r2_score(test_y, pred_y)
 
         mlflow.log_params(params)
-        mlflow.log_metric("eval_rmse", eval_rmse)
+        # mlflow.log_metric("eval_rmse", eval_rmse)
     
         # Log model
         mlflow.sklearn.log_model(rf_model, "model", signature=signature)
+        joblib.dump(rf_model, 'dvc_rf_model.pkl')
+
+        mlflow.log_metrics({
+            "eval_rmse": eval_rmse,
+            "r2": r2
+        })
+        
+        # 保存为 JSON 文件供 DVC 使用
+        metrics = {
+            "rmse": eval_rmse,
+            "r2": r2,
+        }
+        with open("metrics.json", "w") as f:
+            json.dump(metrics, f)
+        
+        mlflow.log_artifact("metrics.json")
 
         return {"loss": eval_rmse, "status": STATUS_OK, "model": rf_model}
     
@@ -81,11 +102,28 @@ def train_model4mlflow(
     rf_model.fit(train_X, train_y)
     
     pred_y = rf_model.predict(test_X)
+
     eval_rmse = np.sqrt(mean_squared_error(test_y, pred_y))
+    r2 = r2_score(test_y, pred_y)
+
     signature = infer_signature(train_X, rf_model.predict(train_X))
 
     mlflow.log_params(params)
-    mlflow.log_metric("eval_rmse", eval_rmse)
+    # mlflow.log_metric("eval_rmse", eval_rmse)
+    mlflow.log_metrics({
+        "eval_rmse": eval_rmse,
+        "r2": r2
+    })
+    
+    # 保存为 JSON 文件供 DVC 使用
+    metrics = {
+        "rmse": eval_rmse,
+        "r2": r2,
+    }
+    with open("metrics.json", "w") as f:
+        json.dump(metrics, f)
+    
+    mlflow.log_artifact("metrics.json")
 
     importance = pd.Series(rf_model.feature_importances_, index=train_X.columns)
     mlflow.log_text(importance.to_csv(), "feature_importance.csv")
@@ -105,19 +143,21 @@ def rf_sklearn_evaulate_model(
 
     pred_y = model.predict(X)
     rmse_score = np.sqrt(mean_squared_error(y, pred_y))
-    # r2 = r2_score(y, pred)
+    r2 = r2_score(y, pred_y)
     # oob = model.oob_score_
 
     return rmse_score
 
 @click.command(help="使用预处理后的数据")
-@click.option("--preprocessing-run-id", help="预处理步骤的Run ID", required=True)
+@click.option("--preprocessing-run-id", help="预处理步骤的Run ID", required=False)
 @click.option("--crop-type", required=True, type=click.Choice(['Maize', 'Wheat', 'Rice', 'threecrops']))
 @click.option("--hyperopt", default=False, help="是否运行超参数优化")
+@click.option("--is_dvc", default=False, help="是否采用 DVC 的数据流, 默认否")
 def train_model(
         preprocessing_run_id: str, 
         crop_type: str = 'Maize',
-        hyperopt: bool = False
+        hyperopt: bool = False,
+        is_dvc: bool = False,
 ) -> None:
     
     np.random.seed(42)
@@ -136,11 +176,16 @@ def train_model(
     }
 
     client = MlflowClient()
-    data_run = client.get_run(preprocessing_run_id)
-    artifact_uri = f"{data_run.info.artifact_uri}/processed_data/{crop_type.lower()}_data.csv"
+    if not is_dvc:
+        # 如果MLflow管道运行，需要从上一个运行中获得处理后的数据文件
+        data_run = client.get_run(preprocessing_run_id)
+        artifact_uri = f"{data_run.info.artifact_uri}/prepared_data/{crop_type.lower()}_data.csv"
     
-    # 直接使用本地路径加载
-    local_path = mlflow.artifacts.download_artifacts(artifact_uri)
+        # 直接使用本地路径加载
+        local_path = mlflow.artifacts.download_artifacts(artifact_uri)
+    else:
+        # DVC管道直接用相对路径
+        local_path = f"./data/prepared/{crop_type.lower()}_data.csv"
     try:
         df = pd.read_csv(local_path)
     except FileNotFoundError:
@@ -191,7 +236,6 @@ def train_model(
 
             # Log the mse metric
             mlflow.log_metric("eval_rmse", best_run["loss"])
-
             mlflow.sklearn.log_model(
                 sk_model=best_run["model"],
                 artifact_path="model",
@@ -211,6 +255,7 @@ def train_model(
                 test_X=test_X,
                 test_y=test_y)
 
+        joblib.dump(rf_model, 'dvc_rf_model.pkl')
         # Log the model
         mlflow.sklearn.log_model(
             sk_model=rf_model,

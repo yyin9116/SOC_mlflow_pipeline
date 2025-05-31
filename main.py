@@ -3,7 +3,7 @@ import mlflow
 from pipeline_utils import get_or_run
 
 @click.command()
-@click.option("--file-path", default="./data.csv")
+@click.option("--file-path", default="./data/data.csv")
 @click.option("--crop-type", required=True, type=click.Choice(['Maize', 'Wheat', 'Rice', 'threecrops'])) 
 @click.option("--hyperopt", default=False, type=bool)
 @click.option("--use-cache", default=True, type=bool)

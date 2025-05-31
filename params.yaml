@@ -1,0 +1,8 @@
+data_prepare:
+  crop_type: 'Maize'
+  file_path: './data/data.csv'
+
+train_model:
+  crop_type: 'Maize'
+  hyperopt: True
+  is_dvc: True

@@ -7,7 +7,7 @@ conda_env: conda_env.yaml
 entry_points:
   data_prepare:
     parameters:
-      file_path: {type: str, default: "./data.csv"}
+      file_path: {type: str, default: "./data/data.csv"}
       crop_type: {type: str, default: "Maize"}
     command: "python data_prepare.py --file-path {file_path} --crop-type {crop_type}"
 
@@ -20,7 +20,7 @@ entry_points:
 
   main:
     parameters:
-      file_path: {type: str, default: "./data.csv"}
+      file_path: {type: str, default: "./data/data.csv"}
       crop_type: {type: str, default: "Maize"}
       hyperopt: {type: bool, default: False}
     command: "python main.py --file-path {file_path} --crop-type {crop_type} --hyperopt {hyperopt}"
