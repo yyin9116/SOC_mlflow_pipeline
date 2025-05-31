@@ -1,0 +1,48 @@
+schema: '2.0'
+stages:
+  data_prepare:
+    cmd: python data_prepare.py --file-path ./data/data.csv --crop-type Maize
+    deps:
+    - path: data/data.csv
+      hash: md5
+      md5: 10200b67e36b5d0ac17af20656581217
+      size: 19192860
+    - path: data_prepare.py
+      hash: md5
+      md5: 04214162fa1665b62206ae80766d0327
+      size: 3404
+    params:
+      params.yaml:
+        data_prepare.crop_type: Maize
+        data_prepare.file_path: ./data/data.csv
+    outs:
+    - path: data/prepared
+      hash: md5
+      md5: c2cc92a318346ecbac63a3bd2696d1ae.dir
+      size: 4470634
+      nfiles: 1
+  train_model:
+    cmd: python train_model.py --crop-type Maize --hyperopt true --is_dvc true
+    deps:
+    - path: data/prepared/Maize_data.csv
+      hash: md5
+      md5: 46b78f6fa98bb6ffb071abf08834d9c9
+      size: 4470634
+    - path: train_model.py
+      hash: md5
+      md5: 1bb9029cd454491f32bbaf801c07f1dd
+      size: 8519
+    params:
+      params.yaml:
+        train_model.crop_type: Maize
+        train_model.hyperopt: true
+        train_model.is_dvc: true
+    outs:
+    - path: dvc_rf_model.pkl
+      hash: md5
+      md5: 83a206c2ccd4f23ae587cfa77907b616
+      size: 763354546
+    - path: metrics.json
+      hash: md5
+      md5: bd8cda68dbf7141c9523baed3f8fcbbc
+      size: 54

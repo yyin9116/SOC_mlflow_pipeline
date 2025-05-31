@@ -1,0 +1,26 @@
+stages:
+  data_prepare:
+    cmd: 'python data_prepare.py --file-path ${data_prepare.file_path} --crop-type ${data_prepare.crop_type}'
+    deps:
+    - data/data.csv
+    - data_prepare.py
+    params:
+    - data_prepare.crop_type
+    - data_prepare.file_path
+    outs:
+    - data/prepared
+    
+  train_model:
+    cmd: 'python train_model.py --crop-type ${train_model.crop_type} --hyperopt ${train_model.hyperopt} --is_dvc ${train_model.is_dvc}'
+    deps:
+    - train_model.py
+    - data/prepared/${train_model.crop_type}_data.csv
+    params:
+    - train_model.crop_type
+    - train_model.hyperopt
+    - train_model.is_dvc
+    outs:
+      - dvc_rf_model.pkl
+    metrics: 
+      - metrics.json:
+          cache: false
