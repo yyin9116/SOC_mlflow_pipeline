@@ -39,10 +39,10 @@ def cut(df: pd.DataFrame, crop_type: str) -> pd.DataFrame:
         help="从 data.csv 文件中读取数据并取出对应作物数据集, 并保存为Mlflow artifact"
         " (pd.DataFrame) for use.' "
 )
-@click.option("--file-path", default="./data.csv")
+@click.option("--file-path", default="./data/data.csv")
 @click.option("--crop-type", default="Maize")
 def prepare_data(
-        file_path: str = './data.csv',
+        file_path: str = './data/data.csv',
         crop_type: str = "Maize") -> None:
     
     with mlflow.start_run() as run:
@@ -56,12 +56,12 @@ def prepare_data(
             processed['Yield'] = processed['Yield'] / 1000
         
         # 只保存当前作物类型数据
-        os.makedirs("processed_data", exist_ok=True)
-        filename = f"processed_data/{crop_type.lower()}_data.csv"
+        os.makedirs("./data/prepared", exist_ok=True)
+        filename = f"./data/prepared/{crop_type.lower()}_data.csv"
         processed.to_csv(filename)
-        mlflow.log_artifact(filename, artifact_path="processed_data")
+        mlflow.log_artifact(filename, artifact_path="prepared_data")
         
-        print(f"Artifact saved at: {mlflow.get_artifact_uri()}/processed_data/{filename}")
+        print(f"Artifact saved at: {mlflow.get_artifact_uri()}/prepared_data/{filename}")
             
         # 记录当前运行ID供后续使用
         mlflow.log_param("preprocessing_crop_type", crop_type)
