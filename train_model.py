@@ -3,7 +3,6 @@ import click
 import pandas as pd
 import numpy as np
 import json
-import warnings
 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
@@ -14,8 +13,6 @@ from mlflow.models import infer_signature
 from mlflow import MlflowClient
 from hyperopt import STATUS_OK, Trials, fmin, hp, tpe
 
-
-warnings.filterwarnings("ignore", message="mlflow.utils.autologging_utils")
 
 # sklearn 模型需要One-hot预处理
 def onehot_encoder(crop_type: pd.DataFrame):

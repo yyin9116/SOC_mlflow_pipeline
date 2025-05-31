@@ -4,5 +4,5 @@ data_prepare:
 
 train_model:
   crop_type: 'Maize'
-  hyperopt: True
+  hyperopt: False
   is_dvc: True

@@ -22,7 +22,7 @@ stages:
       size: 4470634
       nfiles: 1
   train_model:
-    cmd: python train_model.py --crop-type Maize --hyperopt true --is_dvc true
+    cmd: python train_model.py --crop-type Maize --hyperopt false --is_dvc true
     deps:
     - path: data/prepared/Maize_data.csv
       hash: md5
@@ -35,14 +35,14 @@ stages:
     params:
       params.yaml:
         train_model.crop_type: Maize
-        train_model.hyperopt: true
+        train_model.hyperopt: false
         train_model.is_dvc: true
     outs:
     - path: dvc_rf_model.pkl
       hash: md5
-      md5: 83a206c2ccd4f23ae587cfa77907b616
-      size: 763354546
+      md5: 946561958b2dce310e9bee3d1be8adf6
+      size: 769506258
     - path: metrics.json
       hash: md5
-      md5: bd8cda68dbf7141c9523baed3f8fcbbc
-      size: 54
+      md5: bed1bd81ad05a84e21dcc80f3e14cd06
+      size: 53
