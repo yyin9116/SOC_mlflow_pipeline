@@ -4,9 +4,14 @@
 
 ```python
     ├── .dvc                    # dvc缓存文件夹
+    ├── source                  # README所需的资源
     ├── mlruns                  # .gitignore 运行文件
     ├── MLproject               # Mlflow 项目文件
+
     ├── data.csv.dvc            # 由 DVC 托管的数据文件 
+    ├── dvc.yaml                # DVC 的“Makefile”文件
+    ├── dvc.lock                # DVC pipeline 记录
+
     ├── data_prepare.py         # 数据预处理
 
     ├── main.py                 # pipeline 主入口
@@ -31,9 +36,9 @@
 
 ## DVC 数据版本管理
 
-使用 DVC 进行数据集版本管理以及追踪。
+使用 DVC 进行**数据集版本**管理以及追踪。
 
-实际上DVC 同样提供了类似 Mlflow 的全流程管理功能，我在尝试之后将类似 MLproject 的文件 dvc.yaml 保留了下来，可执行：
+实际上 DVC 提供了类似 Mlflow 的全流程管理功能，我在尝试之后将类似 MLproject 的文件 dvc.yaml 保留了下来，可执行：
 
 ```
 dvc repro
@@ -52,6 +57,47 @@ dvc stage add -n data_prepare \
 ```
 详细的 stage 可见 dvc.yaml 文件
 
+对于 DVC 与 MLflow 管理实验的区别，DVC 的主要优势有：
+
+- **简化的依赖传递**：
+  不需要手动传递 run_id；
+  依赖关系在 dvc.yaml 中声明，DVC 自动管理
+
+- **高效的重建机制**：
+  通过哈希值检测文件变化；
+  只重建必要阶段，节省计算资源
+
+- **统一的数据版本控制**：
+  数据和模型与代码一起版本控制；
+  使用 dvc push/pull 在团队间共享数据
+
+虽然 DVC 在流水线管理方面更简洁，但 MLflow 在以下方面仍有优势：
+
+- **实验跟踪**：
+  详细的参数、指标和日志记录；
+  强大的实验比较功能
+
+- **模型注册和部署**：
+  模型版本控制；
+  部署到生产环境的工具链
+
+- **协作功能**：
+  中央化的模型注册表；
+  权限管理和团队协作
+
+由于 DVC 的数据流水线是基于**文件流**的，而 MLflow 在多个运行间传递文件需要同步 Run ID，所以我同时添加了 DVC 的数据流。
+MLflow 的实验监控更加方便，无需再安装其他包，所以实验仍由 MLflow 追踪。
+
+**全流程**：
+
+```mermaid
+graph LR
+  A[数据准备] -->|DVC管理| B[特征工程]
+  B -->|DVC管理| C[模型训练]
+  C -->|MLflow跟踪| D[模型评估]
+  D -->|MLflow注册| E[模型部署]
+  E -->| MLflow托管| F[模型验证]
+```
 ## Mlflow 全流程
 
 ### 快速运行
@@ -134,6 +180,23 @@ https://mlflow.org/docs/latest/getting-started/intro-quickstart/
 
 下面即 3 个运行的报告地址，可以分别点击查看记录的参数内容，点开实验链接可以查看模型状态。
 
+### MLflow Trace
+
+点击运行的报告地址，可以查看过去做过的所有实验：
+<img src='./source/readme_image4.png'>
+实验名称是由 MLflow 自动生成的。
+点击某次具体的实验可查看详情：
+<img src='./source/readme_image5.png'>
+可以看到本次实验的详细记录，包括 Run ID、Tags以及模型是否注册。
+下方还可看到更加精细的运行记录：
+<img src='./source/readme_image6.png'>
+可以看到我们在代码中要求 MLflow 记录的指标参数全都清晰可见。
+<img src='./source/readme_image7.png'>
+在 Artifacts 页可以看到实验需要的流程文件、模型文件以及在实验中要求保留的 Artifacts 记录。
+<img src='./source/readme_image8.png'>
+模型页可以查看历史注册的模型以及迭代版本，如果没有在代码中指定还可以手动在此页面进行注册。
+<img src='./source/readme_image9.png'>
+ 
 ### 测试模型
 
 训练好模型后即可进行测试，post_test.py中提供了测试案例，在运行post_test.py 之前需要先用 mlflow部署为本地推理服务器，运行：
